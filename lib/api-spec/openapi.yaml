@@ -3,13 +3,17 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Loan Tracker API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: loans
+    description: Loan operations
+  - name: payments
+    description: Payment operations
 paths:
   /healthz:
     get:
@@ -24,6 +28,181 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /loans:
+    get:
+      operationId: listLoans
+      tags: [loans]
+      summary: List all loans
+      responses:
+        "200":
+          description: List of loans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Loan"
+    post:
+      operationId: createLoan
+      tags: [loans]
+      summary: Create a new loan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoanInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Loan"
+
+  /loans/summary:
+    get:
+      operationId: getLoanSummary
+      tags: [loans]
+      summary: Get dashboard summary
+      responses:
+        "200":
+          description: Summary stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoanSummary"
+
+  /loans/{id}:
+    get:
+      operationId: getLoan
+      tags: [loans]
+      summary: Get a single loan with interest calculations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Loan with computed interest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoanDetail"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateLoan
+      tags: [loans]
+      summary: Update a loan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoanUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Loan"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteLoan
+      tags: [loans]
+      summary: Delete a loan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /loans/{id}/payments:
+    get:
+      operationId: listPayments
+      tags: [payments]
+      summary: List payments for a loan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payment"
+    post:
+      operationId: createPayment
+      tags: [payments]
+      summary: Record a payment for a loan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+        "404":
+          description: Loan not found
+
+  /loans/{id}/payments/{paymentId}:
+    delete:
+      operationId: deletePayment
+      tags: [payments]
+      summary: Delete a payment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +213,236 @@ components:
       required:
         - status
 
+    Loan:
+      type: object
+      required:
+        - id
+        - type
+        - personName
+        - principal
+        - interestRateMonthly
+        - startDate
+        - status
+        - createdAt
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [borrowed, lent]
+          description: borrowed = I owe them, lent = they owe me
+        personName:
+          type: string
+        principal:
+          type: number
+          description: Original loan amount
+        interestRateMonthly:
+          type: number
+          description: Monthly interest rate as a percentage (e.g. 2 for 2%)
+        startDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [active, closed]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    LoanInput:
+      type: object
+      required:
+        - type
+        - personName
+        - principal
+        - interestRateMonthly
+        - startDate
+      properties:
+        type:
+          type: string
+          enum: [borrowed, lent]
+        personName:
+          type: string
+          minLength: 1
+        principal:
+          type: number
+          minimum: 0
+        interestRateMonthly:
+          type: number
+          minimum: 0
+          description: Monthly interest rate as a percentage (e.g. 2 for 2%)
+        startDate:
+          type: string
+          format: date
+        notes:
+          type: string
+        status:
+          type: string
+          enum: [active, closed]
+
+    LoanUpdate:
+      type: object
+      properties:
+        personName:
+          type: string
+          minLength: 1
+        principal:
+          type: number
+          minimum: 0
+        interestRateMonthly:
+          type: number
+          minimum: 0
+        startDate:
+          type: string
+          format: date
+        notes:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [active, closed]
+
+    LoanDetail:
+      type: object
+      required:
+        - id
+        - type
+        - personName
+        - principal
+        - interestRateMonthly
+        - startDate
+        - status
+        - createdAt
+        - totalInterestAccrued
+        - totalPaid
+        - totalPrincipalPaid
+        - totalInterestPaid
+        - outstandingBalance
+        - monthsElapsed
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [borrowed, lent]
+        personName:
+          type: string
+        principal:
+          type: number
+        interestRateMonthly:
+          type: number
+        startDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [active, closed]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        totalInterestAccrued:
+          type: number
+          description: Total simple interest accrued so far
+        totalPaid:
+          type: number
+          description: Sum of all payments
+        totalPrincipalPaid:
+          type: number
+        totalInterestPaid:
+          type: number
+        outstandingBalance:
+          type: number
+          description: principal + accrued interest - total paid
+        monthsElapsed:
+          type: number
+
+    Payment:
+      type: object
+      required:
+        - id
+        - loanId
+        - paymentDate
+        - amount
+        - principalPaid
+        - interestPaid
+        - createdAt
+      properties:
+        id:
+          type: integer
+        loanId:
+          type: integer
+        paymentDate:
+          type: string
+          format: date
+        amount:
+          type: number
+        principalPaid:
+          type: number
+        interestPaid:
+          type: number
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    PaymentInput:
+      type: object
+      required:
+        - paymentDate
+        - amount
+        - principalPaid
+        - interestPaid
+      properties:
+        paymentDate:
+          type: string
+          format: date
+        amount:
+          type: number
+          minimum: 0
+        principalPaid:
+          type: number
+          minimum: 0
+        interestPaid:
+          type: number
+          minimum: 0
+        notes:
+          type: string
+
+    LoanSummary:
+      type: object
+      required:
+        - totalBorrowed
+        - totalLent
+        - totalBorrowedOutstanding
+        - totalLentOutstanding
+        - activeLoansCount
+        - closedLoansCount
+        - totalInterestOwed
+        - totalInterestReceivable
+      properties:
+        totalBorrowed:
+          type: number
+          description: Sum of principal for borrowed loans
+        totalLent:
+          type: number
+          description: Sum of principal for lent loans
+        totalBorrowedOutstanding:
+          type: number
+          description: Outstanding balance on borrowed loans
+        totalLentOutstanding:
+          type: number
+          description: Outstanding balance on lent loans
+        activeLoansCount:
+          type: integer
+        closedLoansCount:
+          type: integer
+        totalInterestOwed:
+          type: number
+          description: Total accrued interest on borrowed loans
+        totalInterestReceivable:
+          type: number
+          description: Total accrued interest on lent loans
