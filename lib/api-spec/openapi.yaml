@@ -181,6 +181,25 @@ paths:
         "404":
           description: Loan not found
 
+  /refine-note:
+    post:
+      operationId: refineNote
+      tags: [loans]
+      summary: Refine raw/broken text into a clean note using AI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefineNoteInput"
+      responses:
+        "200":
+          description: Refined note text
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefineNoteResult"
+
   /loans/{id}/payments/{paymentId}:
     delete:
       operationId: deletePayment
@@ -410,6 +429,23 @@ components:
           type: number
           minimum: 0
         notes:
+          type: string
+
+    RefineNoteInput:
+      type: object
+      required:
+        - rawText
+      properties:
+        rawText:
+          type: string
+          minLength: 1
+
+    RefineNoteResult:
+      type: object
+      required:
+        - refinedText
+      properties:
+        refinedText:
           type: string
 
     LoanSummary:

@@ -27,7 +27,9 @@ import type {
   LoanSummary,
   LoanUpdate,
   Payment,
-  PaymentInput
+  PaymentInput,
+  RefineNoteInput,
+  RefineNoteResult
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -727,6 +729,77 @@ export const useCreatePayment = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getCreatePaymentMutationOptions(options));
+    }
+
+export const getRefineNoteUrl = () => {
+
+
+
+
+  return `/api/refine-note`
+}
+
+/**
+ * @summary Refine raw/broken text into a clean note using AI
+ */
+export const refineNote = async (refineNoteInput: RefineNoteInput, options?: RequestInit): Promise<RefineNoteResult> => {
+
+  return customFetch<RefineNoteResult>(getRefineNoteUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(refineNoteInput)
+  }
+);}
+
+
+
+
+
+export const getRefineNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refineNote>>, TError,{data: BodyType<RefineNoteInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof refineNote>>, TError,{data: BodyType<RefineNoteInput>}, TContext> => {
+
+const mutationKey = ['refineNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof refineNote>>, {data: BodyType<RefineNoteInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  refineNote(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RefineNoteMutationResult = NonNullable<Awaited<ReturnType<typeof refineNote>>>
+    export type RefineNoteMutationBody = BodyType<RefineNoteInput>
+    export type RefineNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Refine raw/broken text into a clean note using AI
+ */
+export const useRefineNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refineNote>>, TError,{data: BodyType<RefineNoteInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof refineNote>>,
+        TError,
+        {data: BodyType<RefineNoteInput>},
+        TContext
+      > => {
+      return useMutation(getRefineNoteMutationOptions(options));
     }
 
 export const getDeletePaymentUrl = (id: number,

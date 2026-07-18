@@ -158,6 +158,15 @@ export interface PaymentInput {
   notes?: string;
 }
 
+export interface RefineNoteInput {
+  /** @minLength 1 */
+  rawText: string;
+}
+
+export interface RefineNoteResult {
+  refinedText: string;
+}
+
 export interface LoanSummary {
   /** Sum of principal for borrowed loans */
   totalBorrowed: number;

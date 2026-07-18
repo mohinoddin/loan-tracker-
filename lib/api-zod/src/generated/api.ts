@@ -210,6 +210,21 @@ export const CreatePaymentResponse = zod.object({
 
 
 /**
+ * @summary Refine raw/broken text into a clean note using AI
+ */
+
+
+
+export const RefineNoteBody = zod.object({
+  "rawText": zod.string().min(1)
+})
+
+export const RefineNoteResponse = zod.object({
+  "refinedText": zod.string()
+})
+
+
+/**
  * @summary Delete a payment
  */
 export const DeletePaymentParams = zod.object({
