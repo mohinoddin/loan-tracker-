@@ -72,7 +72,7 @@ router.post("/loans/:id/payments", async (req, res): Promise<void> => {
     .insert(paymentsTable)
     .values({
       loanId: params.data.id,
-      paymentDate,
+      paymentDate: paymentDate instanceof Date ? paymentDate.toISOString().split('T')[0] : String(paymentDate),
       amount: String(amount),
       principalPaid: String(principalPaid),
       interestPaid: String(interestPaid),

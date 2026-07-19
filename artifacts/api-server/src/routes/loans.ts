@@ -178,7 +178,7 @@ router.post("/loans", async (req, res): Promise<void> => {
       personName,
       principal: String(principal),
       interestRateMonthly: String(interestRateMonthly),
-      startDate,
+      startDate: startDate instanceof Date ? startDate.toISOString().split('T')[0] : String(startDate),
       notes: notes ?? null,
       status: status ?? "active",
     })
