@@ -4,7 +4,8 @@ services:
     runtime: node
     plan: free
     buildCommand: >
-      npm install -g pnpm &&
+      corepack enable &&
+      corepack prepare pnpm@10.26.1 --activate &&
       pnpm install &&
       BASE_PATH=/ PORT=3000 pnpm --filter @workspace/loan-tracker run build &&
       pnpm --filter @workspace/api-server run build &&
